@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
-const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
-const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
+const MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
 function getCalendarDays(year: number, month: number) {
   const first = new Date(year, month, 1)
@@ -22,7 +23,7 @@ function toLocalInput(iso: string) {
   if (!iso) return ''
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export default function Home() {
@@ -48,8 +49,8 @@ export default function Home() {
   useEffect(() => { load() }, [load])
   useEffect(() => { supabase.from('venues').select('*').then(({ data }) => setVenues(data || [])) }, [])
 
-  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y-1) } else setMonth(m => m-1); setSelected(null) }
-  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y+1) } else setMonth(m => m+1); setSelected(null) }
+  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1); setSelected(null) }
+  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1); setSelected(null) }
 
   const eventsOnDay = (day: number) => events.filter(e => new Date(e.start_time).getDate() === day)
   const selectedEvents = selected ? eventsOnDay(selected) : []
@@ -59,9 +60,9 @@ export default function Home() {
     setEditingId(null)
     const pad = (n: number) => String(n).padStart(2, '0')
     const base = selected
-      ? `${year}-${pad(month+1)}-${pad(selected)}T19:00`
+      ? `${year}-${pad(month + 1)}-${pad(selected)}T19:00`
       : ''
-    setForm({ ...emptyForm, start_time: base, end_time: base ? base.replace('19:00','22:00') : '' })
+    setForm({ ...emptyForm, start_time: base, end_time: base ? base.replace('19:00', '22:00') : '' })
     setShowForm(true)
   }
 
@@ -114,8 +115,15 @@ export default function Home() {
           <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', letterSpacing: 1 }}>СЦЕНА</div>
           <div style={{ fontSize: 11, color: '#9B96D4', marginTop: 4 }}>Система управления</div>
         </div>
-        {[{ label: 'Расписание', active: true }, { label: 'Артисты', active: false }, { label: 'Репертуар', active: false }, { label: 'Отчёты', active: false }].map(item => (
-          <div key={item.label} style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
+        {[
+          { label: 'Расписание', href: '/', active: true },
+          { label: 'Артисты', href: '/artists', active: false },
+          { label: 'Репертуар', href: '#', active: false },
+          { label: 'Отчёты', href: '#', active: false },
+        ].map(item => (
+          <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
+          </Link>
         ))}
         <div style={{ flex: 1 }} />
         <div style={{ padding: '16px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
