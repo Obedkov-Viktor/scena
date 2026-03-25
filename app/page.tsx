@@ -2,9 +2,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import ArtistPicker from './components/ArtistPicker'
 
-const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
-const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
+const MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+
 
 function getCalendarDays(year: number, month: number) {
   const first = new Date(year, month, 1)
@@ -23,7 +25,7 @@ function toLocalInput(iso: string) {
   if (!iso) return ''
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export default function Home() {
@@ -38,6 +40,7 @@ export default function Home() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [artistPickerEventId, setArtistPickerEventId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileTab, setMobileTab] = useState<'calendar' | 'events' | 'artists'>('calendar')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -59,8 +62,8 @@ export default function Home() {
   useEffect(() => { load() }, [load])
   useEffect(() => { supabase.from('venues').select('*').then(({ data }) => setVenues(data || [])) }, [])
 
-  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y-1) } else setMonth(m => m-1); setSelected(null) }
-  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y+1) } else setMonth(m => m+1); setSelected(null) }
+  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1); setSelected(null) }
+  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1); setSelected(null) }
 
   const eventsOnDay = (day: number) => events.filter(e => new Date(e.start_time).getDate() === day)
   const selectedEvents = selected ? eventsOnDay(selected) : []
@@ -69,8 +72,8 @@ export default function Home() {
   const openNew = () => {
     setEditingId(null)
     const pad = (n: number) => String(n).padStart(2, '0')
-    const base = selected ? `${year}-${pad(month+1)}-${pad(selected)}T19:00` : ''
-    setForm({ ...emptyForm, start_time: base, end_time: base ? base.replace('19:00','22:00') : '' })
+    const base = selected ? `${year}-${pad(month + 1)}-${pad(selected)}T19:00` : ''
+    setForm({ ...emptyForm, start_time: base, end_time: base ? base.replace('19:00', '22:00') : '' })
     setShowForm(true)
   }
 
@@ -188,8 +191,9 @@ export default function Home() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => openEdit(ev)} style={{ border: '1px solid #DDD', background: '#FFF', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#534AB7' }}>✎</button>
-                <button onClick={() => setDeleteConfirm(ev.id)} style={{ border: '1px solid #FFCDD2', background: '#FFF8F8', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#E24B4A' }}>✕</button>
+                <button onClick={() => openEdit(ev)} style={{ border: '1px solid #DDD', background: '#FFF', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#534AB7' }} title="Редактировать">✎</button>
+                <button onClick={() => setArtistPickerEventId(ev.id)} style={{ border: '1px solid #C0DDF5', background: '#F0F7FF', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#185FA5' }} title="Артисты">👥</button>
+                <button onClick={() => setDeleteConfirm(ev.id)} style={{ border: '1px solid #FFCDD2', background: '#FFF8F8', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#E24B4A' }} title="Удалить">✕</button>
               </div>
             </div>
           </div>
@@ -206,25 +210,25 @@ export default function Home() {
           <button onClick={() => { setShowForm(false); setEditingId(null) }} style={{ border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', color: '#999' }}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}><label style={lbl}>Название *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Например: Чайка" style={inp} /></div>
+          <div style={{ marginBottom: 16 }}><label style={lbl}>Название *</label><input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Например: Чайка" style={inp} /></div>
           <div style={{ marginBottom: 16 }}><label style={lbl}>Тип</label>
-            <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} style={inp}>
+            <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={inp}>
               <option value="performance">Спектакль</option>
               <option value="rehearsal">Репетиция</option>
               <option value="other">Другое</option>
             </select>
           </div>
           <div style={{ marginBottom: 16 }}><label style={lbl}>Площадка</label>
-            <select value={form.venue_id} onChange={e => setForm({...form, venue_id: e.target.value})} style={inp}>
+            <select value={form.venue_id} onChange={e => setForm({ ...form, venue_id: e.target.value })} style={inp}>
               <option value="">— не выбрана —</option>
               {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-            <div><label style={lbl}>Начало *</label><input required type="datetime-local" value={form.start_time} onChange={e => setForm({...form, start_time: e.target.value})} style={inp} /></div>
-            <div><label style={lbl}>Конец *</label><input required type="datetime-local" value={form.end_time} onChange={e => setForm({...form, end_time: e.target.value})} style={inp} /></div>
+            <div><label style={lbl}>Начало *</label><input required type="datetime-local" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} style={inp} /></div>
+            <div><label style={lbl}>Конец *</label><input required type="datetime-local" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} style={inp} /></div>
           </div>
-          <div style={{ marginBottom: 16 }}><label style={lbl}>Описание</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Необязательно" style={{...inp, height: 70, resize: 'vertical'}} /></div>
+          <div style={{ marginBottom: 16 }}><label style={lbl}>Описание</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Необязательно" style={{ ...inp, height: 70, resize: 'vertical' }} /></div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
             <button type="button" onClick={() => { setShowForm(false); setEditingId(null) }} style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid #DDD', background: '#FFF', fontSize: 14, cursor: 'pointer', color: '#555' }}>Отмена</button>
             <button type="submit" disabled={loading} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: '#534AB7', color: '#FFF', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
@@ -269,7 +273,7 @@ export default function Home() {
 
         {/* Mobile tabs */}
         <div style={{ display: 'flex', background: '#FFFFFF', borderBottom: '1px solid #EBEBF0' }}>
-          {[{ key: 'calendar', label: 'Календарь' }, { key: 'events', label: selected ? `${selected} ${MONTHS_RU[month].slice(0,3)}` : 'События' }, { key: 'artists', label: 'Артисты' }].map(t => (
+          {[{ key: 'calendar', label: 'Календарь' }, { key: 'events', label: selected ? `${selected} ${MONTHS_RU[month].slice(0, 3)}` : 'События' }, { key: 'artists', label: 'Артисты' }].map(t => (
             <Link key={t.key} href={t.key === 'artists' ? '/artists' : '#'} style={{ textDecoration: 'none', flex: 1 }}
               onClick={e => { if (t.key !== 'artists') { e.preventDefault(); setMobileTab(t.key as any) } }}>
               <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 13, fontWeight: mobileTab === t.key ? 600 : 400, color: mobileTab === t.key ? '#534AB7' : '#888', borderBottom: mobileTab === t.key ? '2px solid #534AB7' : '2px solid transparent' }}>
@@ -301,7 +305,12 @@ export default function Home() {
             </Link>
           ))}
         </div>
-
+        {artistPickerEventId && (
+          <ArtistPicker
+            eventId={artistPickerEventId}
+            onClose={() => setArtistPickerEventId(null)}
+          />
+        )}
         <FormModal />
         <DeleteModal />
       </div>
@@ -334,6 +343,12 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {artistPickerEventId && (
+        <ArtistPicker
+          eventId={artistPickerEventId}
+          onClose={() => setArtistPickerEventId(null)}
+        />
+      )}
       <FormModal />
       <DeleteModal />
     </div>
