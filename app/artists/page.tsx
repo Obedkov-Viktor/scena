@@ -91,7 +91,7 @@ export default function Artists() {
         {[
           { label: 'Расписание', href: '/', active: false },
           { label: 'Артисты', href: '/artists', active: true },
-          { label: 'Репертуар', href: '#', active: false },
+          { label: 'Площадки', href: '/venues', active: false },
           { label: 'Отчёты', href: '#', active: false },
         ].map(item => (
           <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
