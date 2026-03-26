@@ -262,7 +262,7 @@ export default function Venues() {
         ))}
         <div style={{ flex: 1 }} />
         <div style={{ padding: '16px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
-          <div style={{ fontWeight: 500, color: '#FFFFFF' }}>Театр им. Пушкина</div>
+          <div style={{ fontWeight: 500, color: '#FFFFFF' }}>Театр мимики и жеста (ТМЖ)</div>
           <div style={{ marginTop: 2 }}>Администратор</div>
           <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
             style={{ marginTop: 8, fontSize: 11, color: '#9B96D4', background: 'none', border: '1px solid #2D2580', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', width: '100%' }}>
