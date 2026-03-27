@@ -42,6 +42,23 @@ export default function Home() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [artistPickerEventId, setArtistPickerEventId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
+  const [weekStart, setWeekStart] = useState(() => {
+    const d = new Date()
+    const day = (d.getDay() + 6) % 7
+    d.setDate(d.getDate() - day)
+    d.setHours(0,0,0,0)
+    return d
+  })
+  const getWeekDays = (start: Date) => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      return d
+    })
+  }
+  const prevWeek = () => setWeekStart(d => { const n = new Date(d); n.setDate(n.getDate() - 7); return n })
+  const nextWeek = () => setWeekStart(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n })
   const [mobileTab, setMobileTab] = useState<'calendar' | 'events' | 'artists'>('calendar')
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -123,6 +140,68 @@ export default function Home() {
       </div>
     </div>
   )
+
+  const WeekBlock = () => {
+    const weekDays = getWeekDays(weekStart)
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekEnd.getDate() + 6)
+    const weekEvents = events.filter(e => {
+      const d = new Date(e.start_time)
+      return d >= weekStart && d <= weekEnd
+    })
+
+    return (
+      <div style={{ background: '#FFFFFF', borderRadius: isMobile ? 0 : 12, border: isMobile ? 'none' : '1px solid #EBEBF0', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #EBEBF0' }}>
+          <button onClick={prevWeek} style={{ border: 'none', background: '#F5F5FF', borderRadius: 6, width: 32, height: 32, cursor: 'pointer', fontSize: 18, color: '#534AB7' }}>‹</button>
+          <div style={{ flex: 1, textAlign: 'center', fontWeight: 600, fontSize: 14, color: '#1a1a2e' }}>
+            {weekStart.getDate()} {MONTHS_RU[weekStart.getMonth()]} — {weekEnd.getDate()} {MONTHS_RU[weekEnd.getMonth()]} {weekEnd.getFullYear()}
+          </div>
+          <button onClick={nextWeek} style={{ border: 'none', background: '#F5F5FF', borderRadius: 6, width: 32, height: 32, cursor: 'pointer', fontSize: 18, color: '#534AB7' }}>›</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {weekDays.map((day, i) => {
+            const tod = day.toDateString() === today.toDateString()
+            const sel = selected === day.getDate() && month === day.getMonth() && year === day.getFullYear()
+            const dayEvs = weekEvents.filter(e => new Date(e.start_time).toDateString() === day.toDateString())
+            return (
+              <div key={i} style={{ borderRight: i < 6 ? '1px solid #F0F0F5' : 'none' }}>
+                <div onClick={() => { setSelected(day.getDate()); setMonth(day.getMonth()); setYear(day.getFullYear()) }}
+                  style={{ padding: '8px 6px', textAlign: 'center', cursor: 'pointer', background: sel ? '#EEEDFE' : tod ? '#F5F3FF' : '#FAFAFA', borderBottom: '1px solid #EBEBF0' }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 2 }}>{DAYS_RU[i]}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 13, fontWeight: tod ? 700 : 400, background: tod ? '#534AB7' : 'transparent', color: tod ? '#FFFFFF' : sel ? '#534AB7' : '#1a1a2e' }}>
+                    {day.getDate()}
+                  </div>
+                </div>
+                <div style={{ padding: '6px 4px', minHeight: 120 }}>
+                  {dayEvs.map(ev => (
+                    <div key={ev.id} onClick={() => { setSelected(day.getDate()); setMonth(day.getMonth()); setYear(day.getFullYear()) }}
+                      style={{ fontSize: 11, padding: '4px 6px', borderRadius: 6, marginBottom: 4, cursor: 'pointer', background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', borderLeft: `2px solid ${ev.type === 'rehearsal' ? '#1D9E75' : '#534AB7'}` }}>
+                      <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
+                      <div style={{ opacity: 0.7, marginTop: 2 }}>
+                        {new Date(ev.start_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      {ev.event_artists && ev.event_artists.length > 0 && (
+                        <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+                          {ev.event_artists.slice(0, 3).map((ea: any, j: number) => {
+                            const colors = ['#534AB7','#1D9E75','#D85A30','#BA7517','#185FA5']
+                            const name = ea.artists?.full_name || ''
+                            const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                            return <div key={j} style={{ width: 16, height: 16, borderRadius: '50%', background: colors[j % colors.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, color: '#FFFFFF' }}>{initials}</div>
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   const CalendarBlock = () => (
     <div style={{ background: '#FFFFFF', borderRadius: isMobile ? 0 : 12, border: isMobile ? 'none' : '1px solid #EBEBF0', overflow: 'hidden' }}>
@@ -342,10 +421,17 @@ export default function Home() {
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EBEBF0', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#1a1a2e' }}>Расписание</div>
           <button onClick={openNew} style={{ background: '#534AB7', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>+ Событие</button>
+          <div style={{ display: 'flex', gap: 4, background: '#F5F5FF', borderRadius: 8, padding: 3 }}>
+          {(['month', 'week'] as const).map(mode => (
+            <button key={mode} onClick={() => setViewMode(mode)} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: viewMode === mode ? 500 : 400, background: viewMode === mode ? '#534AB7' : 'transparent', color: viewMode === mode ? '#FFFFFF' : '#888' }}>
+              {mode === 'month' ? 'Месяц' : 'Неделя'}
+            </button>
+          ))}
+        </div>
         </div>
         <div style={{ flex: 1, padding: 24, overflow: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, maxWidth: 1100 }}>
-            <CalendarBlock />
+            {viewMode === 'month' ? <CalendarBlock /> : <WeekBlock />}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[{ label: 'Событий', value: events.length }, { label: 'Спектаклей', value: events.filter(e => e.type === 'performance').length }, { label: 'Репетиций', value: events.filter(e => e.type === 'rehearsal').length }, { label: 'Площадок', value: venues.length }].map(s => (
