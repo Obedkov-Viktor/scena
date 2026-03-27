@@ -55,7 +55,7 @@ export default function Home() {
   const load = useCallback(async () => {
     const from = new Date(year, month, 1).toISOString()
     const to = new Date(year, month + 1, 0, 23, 59).toISOString()
-    const { data } = await supabase.from('events').select('*, venues(name)').gte('start_time', from).lte('start_time', to).order('start_time')
+    const { data } = await supabase.from('events').select('*, venues(name), event_artists(artist_id, artists(full_name))').gte('start_time', from).lte('start_time', to).order('start_time')
     setEvents(data || [])
   }, [year, month])
 
@@ -186,6 +186,23 @@ export default function Home() {
                   {new Date(ev.end_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                   {ev.venues?.name && ` · ${ev.venues.name}`}
                 </div>
+                  {ev.event_artists && ev.event_artists.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+                      {ev.event_artists.slice(0, 3).map((ea: any, i: number) => {
+                        const colors = ['#534AB7','#1D9E75','#D85A30','#BA7517','#185FA5']
+                        const name = ea.artists?.full_name || ''
+                        const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                        return (
+                          <div key={i} title={name} style={{ width: 22, height: 22, borderRadius: '50%', background: colors[i % colors.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, color: '#FFFFFF', flexShrink: 0 }}>
+                            {initials}
+                          </div>
+                        )
+                      })}
+                      {ev.event_artists.length > 3 && (
+                        <div style={{ fontSize: 10, color: '#888' }}>+{ev.event_artists.length - 3}</div>
+                      )}
+                    </div>
+                  )}
                 <span style={{ display: 'inline-block', marginTop: 6, fontSize: 11, padding: '2px 9px', borderRadius: 10, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', fontWeight: 500 }}>
                   {ev.type === 'rehearsal' ? 'Репетиция' : 'Спектакль'}
                 </span>
@@ -308,7 +325,7 @@ export default function Home() {
         {artistPickerEventId && (
           <ArtistPicker
             eventId={artistPickerEventId}
-            onClose={() => setArtistPickerEventId(null)}
+            onClose={() => { setArtistPickerEventId(null); load() }}
           />
         )}
         <FormModal />
@@ -346,7 +363,7 @@ export default function Home() {
       {artistPickerEventId && (
         <ArtistPicker
           eventId={artistPickerEventId}
-          onClose={() => setArtistPickerEventId(null)}
+          onClose={() => { setArtistPickerEventId(null); load() }}
         />
       )}
       <FormModal />
