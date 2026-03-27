@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTheater } from '@/lib/useTheater'
 import Link from 'next/link'
 
 const emptyForm = { full_name: '', role: '', phone: '', email: '', avatar_url: '' }
 
 export default function Artists() {
+  const { theaterId } = useTheater()
   const [artists, setArtists] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -73,7 +75,7 @@ export default function Artists() {
     if (editingId) {
       await supabase.from('artists').update(payload).eq('id', editingId)
     } else {
-      await supabase.from('artists').insert([payload])
+      await supabase.from('artists').insert([{ ...payload, theater_id: theaterId }])
     }
     setLoading(false); setShowForm(false); setEditingId(null); setForm(emptyForm); setAvatarFile(null); load()
   }

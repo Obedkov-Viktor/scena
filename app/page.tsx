@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTheater } from '@/lib/useTheater'
 import Link from 'next/link'
 import ArtistPicker from './components/ArtistPicker'
 
@@ -30,6 +31,7 @@ function toLocalInput(iso: string) {
 
 export default function Home() {
   const today = new Date()
+  const { theaterId } = useTheater()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [events, setEvents] = useState<any[]>([])
@@ -122,14 +124,24 @@ export default function Home() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    const url = editingId ? `/api/events/${editingId}` : '/api/events'
-    const method = editingId ? 'PATCH' : 'POST'
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+    const payload = {
+      title: form.title,
+      type: form.type,
+      venue_id: form.venue_id || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: new Date(form.end_time).toISOString(),
+      description: form.description || null,
+    }
+    if (editingId) {
+      await supabase.from('events').update(payload).eq('id', editingId)
+    } else {
+      await supabase.from('events').insert([{ ...payload, theater_id: theaterId }])
+    }
     setLoading(false); setShowForm(false); setEditingId(null); setForm(emptyForm); load()
   }
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/events/${id}`, { method: 'DELETE' })
+    await supabase.from('events').delete().eq('id', id)
     setDeleteConfirm(null); load()
   }
 

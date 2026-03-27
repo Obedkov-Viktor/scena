@@ -64,7 +64,10 @@ export default function Login() {
             {loading ? 'Входим...' : 'Войти'}
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: '#BBB' }}>Театр мимики и жеста (ТМЖ)</div>
+        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#888' }}>
+          Нет аккаунта?{' '}
+          <a href="/register" style={{ color: '#534AB7', fontWeight: 500, textDecoration: 'none' }}>Зарегистрировать театр</a>
+        </div>
       </div>
     </div>
   )

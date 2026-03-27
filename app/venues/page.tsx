@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTheater } from '@/lib/useTheater'
 import Link from 'next/link'
 
 const emptyForm = { name: '', capacity: '' }
 
 export default function Venues() {
+  const { theaterId } = useTheater()
   const [venues, setVenues] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -52,7 +54,7 @@ export default function Venues() {
     if (editingId) {
       await supabase.from('venues').update(payload).eq('id', editingId)
     } else {
-      await supabase.from('venues').insert([payload])
+      await supabase.from('venues').insert([{ ...payload, theater_id: theaterId }])
     }
     setLoading(false); setShowForm(false); setEditingId(null); setForm(emptyForm); load()
   }
