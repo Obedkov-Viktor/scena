@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useTheater } from '@/lib/useTheater'
+import { Sidebar, MobileNav } from '@/app/components/Sidebar'
 import Link from 'next/link'
 import ArtistPicker from './components/ArtistPicker'
 
@@ -149,28 +150,6 @@ export default function Home() {
   const inp: React.CSSProperties = { width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E0E0E0', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'system-ui' }
   const lbl: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 500, color: '#555', marginBottom: 6 }
 
-  const Sidebar = () => (
-    <div style={{ width: 220, background: '#1E1756', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
-      <div style={{ padding: '0 20px 24px', borderBottom: '1px solid #2D2580' }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', letterSpacing: 1 }}>СЦЕНА</div>
-        <div style={{ fontSize: 11, color: '#9B96D4', marginTop: 4 }}>Система управления</div>
-      </div>
-      {[{ label: 'Расписание', href: '/', active: true }, { label: 'Репертуар', href: '/repertoire', active: false }, { label: 'Артисты', href: '/artists', active: false }, { label: 'Гастроли', href: '/tours', active: false }, { label: 'Площадки', href: '/venues', active: false }, { label: 'Отчёты', href: '/reports', active: false }].map(item => (
-        <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
-          <div style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
-        </Link>
-      ))}
-      <div style={{ flex: 1 }} />
-      <div style={{ padding: '16px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
-        <div style={{ fontWeight: 500, color: '#FFFFFF' }}>Театр мимики и жеста (ТМЖ)</div>
-        <div style={{ marginTop: 2 }}>Администратор</div>
-        <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
-          style={{ marginTop: 8, fontSize: 11, color: '#9B96D4', background: 'none', border: '1px solid #2D2580', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', width: '100%' }}>
-          Выйти
-        </button>
-      </div>
-    </div>
-  )
 
   const WeekBlock = () => {
     const weekDays = getWeekDays(weekStart)
@@ -416,24 +395,7 @@ export default function Home() {
           {mobileTab === 'events' && <EventsBlock />}
         </div>
 
-        {/* Mobile bottom nav */}
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1E1756', display: 'flex', padding: '10px 0 16px', zIndex: 100 }}>
-          {[
-            { label: 'Расписание', href: '/', icon: '📅' },
-            { label: 'Артисты', href: '/artists', icon: '👥' },
-            { label: 'Гастроли', href: '/tours', icon: '✈️' },
-            { label: 'Отчёты', href: '/reports', icon: '📊' },
-            { label: 'Выйти', href: '#', icon: '🚪' },
-          ].map(item => (
-            <Link key={item.label} href={item.href} style={{ textDecoration: 'none', flex: 1 }}
-              onClick={async e => { if (item.label === 'Выйти') { e.preventDefault(); await supabase.auth.signOut(); window.location.href = '/login' } }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 18 }}>{item.icon}</div>
-                <div style={{ fontSize: 9, color: '#9B96D4', marginTop: 2 }}>{item.label}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <MobileNav />
         {artistPickerEventId && (
           <ArtistPicker
             eventId={artistPickerEventId}

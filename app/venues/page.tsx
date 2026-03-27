@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useTheater } from '@/lib/useTheater'
+import { Sidebar, MobileNav } from '@/app/components/Sidebar'
 import Link from 'next/link'
 
 const emptyForm = { name: '', capacity: '' }
@@ -247,31 +248,7 @@ export default function Venues() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F7F6FF', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ width: 220, background: '#1E1756', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
-        <div style={{ padding: '0 20px 24px', borderBottom: '1px solid #2D2580' }}>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', letterSpacing: 1 }}>СЦЕНА</div>
-          <div style={{ fontSize: 11, color: '#9B96D4', marginTop: 4 }}>Система управления</div>
-        </div>
-        {[
-          { label: 'Расписание', href: '/', active: false },
-          { label: 'Артисты', href: '/artists', active: false },
-          { label: 'Площадки', href: '/venues', active: true },
-          { label: 'Отчёты', href: '#', active: false },
-        ].map(item => (
-          <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
-          </Link>
-        ))}
-        <div style={{ flex: 1 }} />
-        <div style={{ padding: '16px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
-          <div style={{ fontWeight: 500, color: '#FFFFFF' }}>Театр мимики и жеста (ТМЖ)</div>
-          <div style={{ marginTop: 2 }}>Администратор</div>
-          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
-            style={{ marginTop: 8, fontSize: 11, color: '#9B96D4', background: 'none', border: '1px solid #2D2580', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', width: '100%' }}>
-            Выйти
-          </button>
-        </div>
-      </div>
+      <Sidebar />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EBEBF0', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
