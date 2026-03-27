@@ -390,13 +390,15 @@ export default function Home() {
           {[
             { label: 'Расписание', href: '/', icon: '📅' },
             { label: 'Артисты', href: '/artists', icon: '👥' },
+            { label: 'Гастроли', href: '/tours', icon: '✈️' },
+            { label: 'Отчёты', href: '/reports', icon: '📊' },
             { label: 'Выйти', href: '#', icon: '🚪' },
           ].map(item => (
             <Link key={item.label} href={item.href} style={{ textDecoration: 'none', flex: 1 }}
               onClick={async e => { if (item.label === 'Выйти') { e.preventDefault(); await supabase.auth.signOut(); window.location.href = '/login' } }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>{item.icon}</div>
-                <div style={{ fontSize: 10, color: '#9B96D4', marginTop: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 18 }}>{item.icon}</div>
+                <div style={{ fontSize: 9, color: '#9B96D4', marginTop: 2 }}>{item.label}</div>
               </div>
             </Link>
           ))}

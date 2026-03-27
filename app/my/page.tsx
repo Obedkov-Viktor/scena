@@ -10,6 +10,7 @@ export default function MyPage() {
   const router = useRouter()
   const [artist, setArtist] = useState<any>(null)
   const [events, setEvents] = useState<any[]>([])
+  const [allUpcoming, setAllUpcoming] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [month, setMonth] = useState(new Date().getMonth())
   const [year, setYear] = useState(new Date().getFullYear())
@@ -28,6 +29,16 @@ export default function MyPage() {
       if (!artistData) { router.push('/'); return }
       setArtist(artistData)
       setLoading(false)
+
+      // Load all upcoming events for notifications
+      const { data: upcoming } = await supabase
+        .from('events')
+        .select('*, venues(name), event_artists!inner(artist_id)')
+        .eq('event_artists.artist_id', artistData.id)
+        .gte('start_time', new Date().toISOString())
+        .order('start_time')
+        .limit(10)
+      setAllUpcoming(upcoming || [])
     }
     init()
   }, [router])
@@ -57,6 +68,8 @@ export default function MyPage() {
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1) }
 
   const today = new Date()
+  const in3days = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
+  const soonEvents = allUpcoming.filter(e => new Date(e.start_time) <= in3days)
   const upcoming = events.filter(e => new Date(e.start_time) >= today)
   const past = events.filter(e => new Date(e.start_time) < today)
 
@@ -83,6 +96,24 @@ export default function MyPage() {
       </div>
 
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
+
+        {/* Notification banner — events within 3 days */}
+        {soonEvents.length > 0 && (
+          <div style={{ background: '#FFF8E6', border: '1px solid #F0C040', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#8B6000', marginBottom: 8 }}>
+              🔔 Ближайшие события (в течение 3 дней)
+            </div>
+            {soonEvents.map(ev => (
+              <div key={ev.id} style={{ fontSize: 13, color: '#5A4000', padding: '4px 0', borderTop: '1px solid #F0D070' }}>
+                <span style={{ fontWeight: 500 }}>{ev.title}</span>
+                {' · '}
+                {formatDate(ev.start_time)}, {formatTime(ev.start_time)}
+                {ev.venues?.name && ` · ${ev.venues.name}`}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Artist card */}
         <div style={{ background: '#FFFFFF', borderRadius: 14, border: '1px solid #EBEBF0', padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#FFFFFF', flexShrink: 0 }}>
@@ -125,18 +156,24 @@ export default function MyPage() {
             {upcoming.length > 0 && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 }}>Предстоящие</div>
-                {upcoming.map(ev => (
-                  <div key={ev.id} style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #EBEBF0', padding: '14px 16px', marginBottom: 10, borderLeft: `4px solid ${ev.type === 'rehearsal' ? '#1D9E75' : '#534AB7'}` }}>
-                    <div style={{ fontWeight: 600, fontSize: 15, color: '#1a1a2e' }}>{ev.title}</div>
-                    <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>
-                      📅 {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatTime(ev.end_time)}
+                {upcoming.map(ev => {
+                  const isSoon = new Date(ev.start_time) <= in3days
+                  return (
+                    <div key={ev.id} style={{ background: '#FFFFFF', borderRadius: 12, border: `1px solid ${isSoon ? '#F0C040' : '#EBEBF0'}`, padding: '14px 16px', marginBottom: 10, borderLeft: `4px solid ${ev.type === 'rehearsal' ? '#1D9E75' : '#534AB7'}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontWeight: 600, fontSize: 15, color: '#1a1a2e', flex: 1 }}>{ev.title}</div>
+                        {isSoon && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 8, background: '#FFF0C0', color: '#8B6000', fontWeight: 600 }}>СКОРО</span>}
+                      </div>
+                      <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>
+                        📅 {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatTime(ev.end_time)}
+                      </div>
+                      {ev.venues?.name && <div style={{ fontSize: 12, color: '#888', marginTop: 3 }}>📍 {ev.venues.name}</div>}
+                      <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, padding: '2px 9px', borderRadius: 10, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', fontWeight: 500 }}>
+                        {ev.type === 'rehearsal' ? 'Репетиция' : 'Спектакль'}
+                      </span>
                     </div>
-                    {ev.venues?.name && <div style={{ fontSize: 12, color: '#888', marginTop: 3 }}>📍 {ev.venues.name}</div>}
-                    <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, padding: '2px 9px', borderRadius: 10, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', fontWeight: 500 }}>
-                      {ev.type === 'rehearsal' ? 'Репетиция' : 'Спектакль'}
-                    </span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             {past.length > 0 && (
