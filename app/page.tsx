@@ -30,9 +30,78 @@ function toLocalInput(iso: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function Landing() {
+  const features = [
+    { icon: '📅', title: 'Расписание', desc: 'Календарь спектаклей и репетиций по месяцам и неделям' },
+    { icon: '👥', title: 'Артисты', desc: 'Профили, роли, занятость и назначение на события' },
+    { icon: '🎭', title: 'Репертуар', desc: 'Каталог спектаклей с составом труппы' },
+    { icon: '✈️', title: 'Гастроли', desc: 'Планирование выездных показов и поездок' },
+    { icon: '🏛️', title: 'Площадки', desc: 'Управление залами и вместимостью' },
+    { icon: '📊', title: 'Отчёты', desc: 'Статистика занятости и активности театра' },
+  ]
+  return (
+    <div style={{ minHeight: '100vh', background: '#1E1756', fontFamily: 'system-ui, sans-serif' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', borderBottom: '1px solid #2D2580' }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: '#FFFFFF', letterSpacing: 2 }}>СЦЕНА</div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <a href="/login" style={{ padding: '8px 20px', borderRadius: 8, border: '1px solid #534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Войти</a>
+          <a href="/register" style={{ padding: '8px 20px', borderRadius: 8, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Зарегистрировать театр</a>
+        </div>
+      </div>
+
+      {/* Hero */}
+      <div style={{ textAlign: 'center', padding: '80px 40px 60px' }}>
+        <div style={{ fontSize: 13, color: '#7F77DD', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>Система управления театром</div>
+        <h1 style={{ fontSize: 48, fontWeight: 800, color: '#FFFFFF', margin: '0 0 20px', lineHeight: 1.15 }}>
+          Всё расписание театра —<br />в одном месте
+        </h1>
+        <p style={{ fontSize: 18, color: '#9B96D4', maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.6 }}>
+          Управляйте спектаклями, артистами и гастролями. Без Excel, без путаницы.
+        </p>
+        <a href="/register" style={{ display: 'inline-block', padding: '14px 36px', borderRadius: 12, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 16, fontWeight: 700, boxShadow: '0 4px 24px rgba(83,74,183,0.4)' }}>
+          Начать бесплатно →
+        </a>
+        <div style={{ marginTop: 14, fontSize: 13, color: '#6B67A8' }}>Бесплатно · Без кредитной карты · Готово за 2 минуты</div>
+      </div>
+
+      {/* Features */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 80px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {features.map(f => (
+            <div key={f.title} style={{ background: '#2D2580', borderRadius: 12, padding: '24px 20px' }}>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>{f.icon}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', marginBottom: 6 }}>{f.title}</div>
+              <div style={{ fontSize: 13, color: '#9B96D4', lineHeight: 1.5 }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{ textAlign: 'center', padding: '0 40px 80px' }}>
+        <div style={{ background: '#2D2580', borderRadius: 16, padding: '48px 40px', maxWidth: 560, margin: '0 auto' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#FFFFFF', marginBottom: 12 }}>Готовы попробовать?</div>
+          <div style={{ fontSize: 14, color: '#9B96D4', marginBottom: 28 }}>Зарегистрируйте театр и начните пользоваться прямо сейчас</div>
+          <a href="/register" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 10, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 15, fontWeight: 600 }}>
+            Зарегистрировать театр
+          </a>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid #2D2580', padding: '20px 40px', textAlign: 'center', fontSize: 12, color: '#6B67A8' }}>
+        СЦЕНА — система управления театром · 2026
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const today = new Date()
   const { theaterId } = useTheater()
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [events, setEvents] = useState<any[]>([])
@@ -67,6 +136,13 @@ export default function Home() {
   const nextWeek = () => setWeekStart(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n })
   const [mobileTab, setMobileTab] = useState<'calendar' | 'events' | 'artists'>('calendar')
 
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session)
+      setAuthChecked(true)
+    })
+  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -359,6 +435,9 @@ export default function Home() {
       </div>
     </div>
   ) : null
+
+  if (!authChecked) return null
+  if (!isLoggedIn) return <Landing />
 
   if (isMobile) {
     return (
