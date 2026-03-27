@@ -60,7 +60,7 @@ export default function Home() {
   const prevWeek = () => setWeekStart(d => { const n = new Date(d); n.setDate(n.getDate() - 7); return n })
   const nextWeek = () => setWeekStart(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n })
   const [mobileTab, setMobileTab] = useState<'calendar' | 'events' | 'artists'>('calendar')
-  const [menuOpen, setMenuOpen] = useState(false)
+
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -100,7 +100,7 @@ export default function Home() {
     setShowForm(true)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const url = editingId ? `/api/events/${editingId}` : '/api/events'
@@ -124,7 +124,7 @@ export default function Home() {
         <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', letterSpacing: 1 }}>СЦЕНА</div>
         <div style={{ fontSize: 11, color: '#9B96D4', marginTop: 4 }}>Система управления</div>
       </div>
-      {[{ label: 'Расписание', href: '/', active: true }, { label: 'Артисты', href: '/artists', active: false }, { label: 'Репертуар', href: '#', active: false }, { label: 'Отчёты', href: '#', active: false }].map(item => (
+      {[{ label: 'Расписание', href: '/', active: true }, { label: 'Артисты', href: '/artists', active: false }, { label: 'Гастроли', href: '/tours', active: false }, { label: 'Площадки', href: '/venues', active: false }, { label: 'Отчёты', href: '/reports', active: false }].map(item => (
         <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
           <div style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
         </Link>
@@ -420,6 +420,9 @@ export default function Home() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EBEBF0', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#1a1a2e' }}>Расписание</div>
+          <Link href={`/print?year=${year}&month=${month}`} target="_blank" style={{ textDecoration: 'none' }}>
+            <button style={{ background: '#F5F5FF', color: '#534AB7', border: '1px solid #D0CDFF', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>🖨 Печать</button>
+          </Link>
           <button onClick={openNew} style={{ background: '#534AB7', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>+ Событие</button>
           <div style={{ display: 'flex', gap: 4, background: '#F5F5FF', borderRadius: 8, padding: 3 }}>
           {(['month', 'week'] as const).map(mode => (

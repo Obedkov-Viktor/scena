@@ -14,12 +14,17 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('Неверный email или пароль')
       setLoading(false)
     } else {
-      router.push('/')
+      const { data: artist } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('email', data.user?.email)
+        .maybeSingle()
+      router.push(artist ? '/my' : '/')
       router.refresh()
     }
   }

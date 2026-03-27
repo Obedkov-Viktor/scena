@@ -5,13 +5,35 @@ import { supabase } from '@/lib/supabase'
 export default function ArtistPicker({ eventId, onClose }: { eventId: string, onClose: () => void }) {
   const [artists, setArtists] = useState<any[]>([])
   const [assigned, setAssigned] = useState<string[]>([])
+  const [conflicts, setConflicts] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    supabase.from('artists').select('*').order('full_name').then(({ data }) => setArtists(data || []))
-    supabase.from('event_artists').select('artist_id').eq('event_id', eventId).then(({ data }) => {
-      setAssigned((data || []).map((r: any) => r.artist_id))
-    })
+    const load = async () => {
+      const [{ data: allArtists }, { data: eventArtists }, { data: currentEvent }] = await Promise.all([
+        supabase.from('artists').select('*').order('full_name'),
+        supabase.from('event_artists').select('artist_id').eq('event_id', eventId),
+        supabase.from('events').select('start_time, end_time').eq('id', eventId).single(),
+      ])
+
+      setArtists(allArtists || [])
+      setAssigned((eventArtists || []).map((r: any) => r.artist_id))
+
+      if (currentEvent?.start_time && currentEvent?.end_time) {
+        const { data: overlapping } = await supabase
+          .from('events')
+          .select('id, event_artists(artist_id)')
+          .neq('id', eventId)
+          .lt('start_time', currentEvent.end_time)
+          .gt('end_time', currentEvent.start_time)
+
+        const busyArtistIds = (overlapping || []).flatMap((e: any) =>
+          (e.event_artists || []).map((ea: any) => ea.artist_id)
+        )
+        setConflicts([...new Set(busyArtistIds)] as string[])
+      }
+    }
+    load()
   }, [eventId])
 
   const toggle = async (artistId: string) => {
@@ -47,15 +69,27 @@ export default function ArtistPicker({ eventId, onClose }: { eventId: string, on
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {artists.map((artist, i) => {
               const isAssigned = assigned.includes(artist.id)
+              const hasConflict = conflicts.includes(artist.id)
               return (
                 <div key={artist.id} onClick={() => !loading && toggle(artist.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, marginBottom: 6, cursor: 'pointer', background: isAssigned ? '#F0FBF6' : '#FAFAFA', border: `1.5px solid ${isAssigned ? '#1D9E75' : '#EBEBF0'}`, transition: 'all 0.15s' }}>
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+                    borderRadius: 10, marginBottom: 6, cursor: 'pointer',
+                    background: isAssigned ? '#F0FBF6' : hasConflict ? '#FFF8F0' : '#FAFAFA',
+                    border: `1.5px solid ${isAssigned ? '#1D9E75' : hasConflict ? '#E8A020' : '#EBEBF0'}`,
+                    transition: 'all 0.15s'
+                  }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: colorFor(i), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#FFFFFF', flexShrink: 0 }}>
                     {initials(artist.full_name)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 500, fontSize: 13, color: '#1a1a2e' }}>{artist.full_name}</div>
                     <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>{artist.role || 'Роль не указана'}</div>
+                    {hasConflict && (
+                      <div style={{ fontSize: 11, color: '#C07010', marginTop: 2, fontWeight: 500 }}>
+                        ⚠️ Занят в это время
+                      </div>
+                    )}
                   </div>
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: isAssigned ? '#1D9E75' : '#E0E0E0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {isAssigned && <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 700 }}>✓</span>}
