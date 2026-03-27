@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
-const emptyForm = { full_name: '', role: '', phone: '', email: '' }
+const emptyForm = { full_name: '', role: '', phone: '', email: '', avatar_url: '' }
 
 export default function Artists() {
   const [artists, setArtists] = useState<any[]>([])
@@ -12,6 +12,7 @@ export default function Artists() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(false)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -51,19 +52,30 @@ export default function Artists() {
   const openNew = () => { setEditingId(null); setForm(emptyForm); setShowForm(true) }
   const openEdit = (a: any) => {
     setEditingId(a.id)
-    setForm({ full_name: a.full_name, role: a.role || '', phone: a.phone || '', email: a.email || '' })
+    setForm({ full_name: a.full_name, role: a.role || '', phone: a.phone || '', email: a.email || '', avatar_url: a.avatar_url || '' })
     setShowForm(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    if (editingId) {
-      await supabase.from('artists').update(form).eq('id', editingId)
-    } else {
-      await supabase.from('artists').insert([form])
+    let avatar_url = form.avatar_url
+    if (avatarFile) {
+      const ext = avatarFile.name.split('.').pop()
+      const path = `${Date.now()}.${ext}`
+      const { data: uploaded } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true })
+      if (uploaded) {
+        const { data: pub } = supabase.storage.from('avatars').getPublicUrl(uploaded.path)
+        avatar_url = pub.publicUrl
+      }
     }
-    setLoading(false); setShowForm(false); setEditingId(null); setForm(emptyForm); load()
+    const payload = { ...form, avatar_url }
+    if (editingId) {
+      await supabase.from('artists').update(payload).eq('id', editingId)
+    } else {
+      await supabase.from('artists').insert([payload])
+    }
+    setLoading(false); setShowForm(false); setEditingId(null); setForm(emptyForm); setAvatarFile(null); load()
   }
 
   const handleDelete = async (id: string) => {
@@ -93,8 +105,8 @@ export default function Artists() {
           <div key={artist.id} onClick={() => setSelected(isSelected ? null : artist.id)}
             style={{ padding: '14px 16px', borderBottom: '1px solid #F5F5F5', cursor: 'pointer', background: isSelected ? '#F5F3FF' : '#FFFFFF' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 42, height: 42, borderRadius: '50%', background: colorFor(i), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#FFFFFF', flexShrink: 0 }}>
-                {initials(artist.full_name)}
+              <div style={{ width: 42, height: 42, borderRadius: '50%', background: colorFor(i), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#FFFFFF', flexShrink: 0, overflow: 'hidden' }}>
+                {artist.avatar_url ? <img src={artist.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(artist.full_name)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: '#1a1a2e' }}>{artist.full_name}</div>
@@ -129,8 +141,8 @@ export default function Artists() {
   ) : (
     <div style={{ background: '#FFFFFF', borderRadius: isMobile ? 0 : 12, border: isMobile ? 'none' : '1px solid #EBEBF0', overflow: 'hidden' }}>
       <div style={{ padding: '20px', borderBottom: '1px solid #F0F0F5', textAlign: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: colorFor(artists.indexOf(selectedArtist)), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#FFFFFF', margin: '0 auto 12px' }}>
-          {initials(selectedArtist.full_name)}
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: colorFor(artists.indexOf(selectedArtist)), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#FFFFFF', margin: '0 auto 12px', overflow: 'hidden' }}>
+          {selectedArtist.avatar_url ? <img src={selectedArtist.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(selectedArtist.full_name)}
         </div>
         <div style={{ fontWeight: 700, fontSize: 17, color: '#1a1a2e' }}>{selectedArtist.full_name}</div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>{selectedArtist.role || 'Роль не указана'}</div>
@@ -174,6 +186,21 @@ export default function Artists() {
               <input required={f.key === 'full_name'} value={(form as any)[f.key]} onChange={e => setForm({...form, [f.key]: e.target.value})} placeholder={f.placeholder} style={inp} />
             </div>
           ))}
+          <div style={{ marginBottom: 20 }}>
+            <label style={lbl}>Фото</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {(avatarFile || form.avatar_url) && (
+                <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #E0E0E0' }}>
+                  <img src={avatarFile ? URL.createObjectURL(avatarFile) : form.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+              <label style={{ flex: 1, padding: '9px 14px', borderRadius: 10, border: '1.5px dashed #D0CDFF', background: '#F8F7FF', cursor: 'pointer', fontSize: 13, color: '#534AB7', textAlign: 'center', display: 'block' }}>
+                {avatarFile ? avatarFile.name : '+ Выбрать фото'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => setAvatarFile(e.target.files?.[0] || null)} />
+              </label>
+              {avatarFile && <button type="button" onClick={() => setAvatarFile(null)} style={{ border: 'none', background: 'none', color: '#E24B4A', cursor: 'pointer', fontSize: 18 }}>×</button>}
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
             <button type="button" onClick={() => setShowForm(false)} style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid #DDD', background: '#FFF', fontSize: 14, cursor: 'pointer' }}>Отмена</button>
             <button type="submit" disabled={loading} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: '#534AB7', color: '#FFF', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
