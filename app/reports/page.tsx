@@ -115,7 +115,7 @@ export default function ReportsPage() {
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140 }}>
               {byMonth.map((m, i) => (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <div style={{ fontSize: 10, color: '#888', fontWeight: m.total > 0 ? 600 : 400, color: m.total > 0 ? '#534AB7' : '#CCC' }}>
+                  <div style={{ fontSize: 10, fontWeight: m.total > 0 ? 600 : 400, color: m.total > 0 ? '#534AB7' : '#CCC' }}>
                     {m.total > 0 ? m.total : ''}
                   </div>
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 100 }}>
