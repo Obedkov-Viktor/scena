@@ -40,6 +40,9 @@ export default function Home() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ events: any[], artists: any[] } | null>(null)
+  const [searchLoading, setSearchLoading] = useState(false)
   const [artistPickerEventId, setArtistPickerEventId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
@@ -78,6 +81,22 @@ export default function Home() {
 
   useEffect(() => { load() }, [load])
   useEffect(() => { supabase.from('venues').select('*').then(({ data }) => setVenues(data || [])) }, [])
+
+  const doSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSearchResults(null); return }
+    setSearchLoading(true)
+    const [{ data: evs }, { data: arts }] = await Promise.all([
+      supabase.from('events').select('*, venues(name)').ilike('title', `%${q}%`).order('start_time').limit(8),
+      supabase.from('artists').select('*').ilike('full_name', `%${q}%`).limit(8),
+    ])
+    setSearchResults({ events: evs || [], artists: arts || [] })
+    setSearchLoading(false)
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => doSearch(searchQuery), 300)
+    return () => clearTimeout(t)
+  }, [searchQuery, doSearch])
 
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1); setSelected(null) }
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1); setSelected(null) }
@@ -124,7 +143,7 @@ export default function Home() {
         <div style={{ fontSize: 22, fontWeight: 700, color: '#FFFFFF', letterSpacing: 1 }}>СЦЕНА</div>
         <div style={{ fontSize: 11, color: '#9B96D4', marginTop: 4 }}>Система управления</div>
       </div>
-      {[{ label: 'Расписание', href: '/', active: true }, { label: 'Артисты', href: '/artists', active: false }, { label: 'Гастроли', href: '/tours', active: false }, { label: 'Площадки', href: '/venues', active: false }, { label: 'Отчёты', href: '/reports', active: false }].map(item => (
+      {[{ label: 'Расписание', href: '/', active: true }, { label: 'Репертуар', href: '/repertoire', active: false }, { label: 'Артисты', href: '/artists', active: false }, { label: 'Гастроли', href: '/tours', active: false }, { label: 'Площадки', href: '/venues', active: false }, { label: 'Отчёты', href: '/reports', active: false }].map(item => (
         <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
           <div style={{ padding: '11px 20px', fontSize: 13, cursor: 'pointer', marginTop: 2, color: item.active ? '#FFFFFF' : '#9B96D4', background: item.active ? '#2D2580' : 'transparent', borderLeft: item.active ? '3px solid #7F77DD' : '3px solid transparent', fontWeight: item.active ? 500 : 400 }}>{item.label}</div>
         </Link>
@@ -422,6 +441,68 @@ export default function Home() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EBEBF0', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, fontSize: 16, fontWeight: 600, color: '#1a1a2e' }}>Расписание</div>
+          {/* Search */}
+          <div style={{ position: 'relative' }}>
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="🔍 Поиск..."
+              style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #E0E0E0', fontSize: 13, outline: 'none', width: 200, fontFamily: 'system-ui' }}
+            />
+            {(searchResults || searchLoading) && searchQuery && (
+              <div style={{ position: 'absolute', top: '110%', left: 0, right: 0, background: '#FFF', borderRadius: 10, border: '1px solid #E0E0E0', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 500, maxHeight: 360, overflowY: 'auto', minWidth: 320 }}>
+                {searchLoading ? (
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#888', fontSize: 13 }}>Поиск...</div>
+                ) : (
+                  <>
+                    {searchResults!.events.length === 0 && searchResults!.artists.length === 0 ? (
+                      <div style={{ padding: '16px', textAlign: 'center', color: '#BBB', fontSize: 13 }}>Ничего не найдено</div>
+                    ) : (
+                      <>
+                        {searchResults!.events.length > 0 && (
+                          <div>
+                            <div style={{ padding: '8px 14px 4px', fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>События</div>
+                            {searchResults!.events.map(ev => (
+                              <div key={ev.id} onClick={() => { const d = new Date(ev.start_time); setYear(d.getFullYear()); setMonth(d.getMonth()); setSelected(d.getDate()); setSearchQuery(''); setSearchResults(null) }}
+                                style={{ padding: '8px 14px', cursor: 'pointer', borderTop: '1px solid #F5F5F5', display: 'flex', alignItems: 'center', gap: 10 }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#F5F3FF')}
+                                onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ev.type === 'rehearsal' ? '#1D9E75' : '#534AB7', flexShrink: 0 }} />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{ev.title}</div>
+                                  <div style={{ fontSize: 11, color: '#888' }}>{new Date(ev.start_time).toLocaleDateString('ru-RU')}{ev.venues?.name ? ` · ${ev.venues.name}` : ''}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {searchResults!.artists.length > 0 && (
+                          <div>
+                            <div style={{ padding: '8px 14px 4px', fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Артисты</div>
+                            {searchResults!.artists.map(a => (
+                              <Link key={a.id} href="/artists" style={{ textDecoration: 'none' }} onClick={() => { setSearchQuery(''); setSearchResults(null) }}>
+                                <div style={{ padding: '8px 14px', cursor: 'pointer', borderTop: '1px solid #F5F5F5', display: 'flex', alignItems: 'center', gap: 10 }}
+                                  onMouseEnter={e => (e.currentTarget.style.background = '#F5F3FF')}
+                                  onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#FFF', flexShrink: 0 }}>
+                                    {a.full_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{a.full_name}</div>
+                                    <div style={{ fontSize: 11, color: '#888' }}>{a.role || 'Артист'}</div>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           <Link href={`/print?year=${year}&month=${month}`} target="_blank" style={{ textDecoration: 'none' }}>
             <button style={{ background: '#F5F5FF', color: '#534AB7', border: '1px solid #D0CDFF', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>🖨 Печать</button>
           </Link>
