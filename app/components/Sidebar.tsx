@@ -3,6 +3,18 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+function PrintLink() {
+  const now = new Date()
+  const href = `/print?year=${now.getFullYear()}&month=${now.getMonth()}`
+  return (
+    <Link href={href} target="_blank" style={{ textDecoration: 'none', display: 'block' }}>
+      <div style={{ fontSize: 12, color: '#9B96D4', padding: '6px 0', cursor: 'pointer' }}>
+        🖨 Печать расписания
+      </div>
+    </Link>
+  )
+}
+
 const NAV = [
   { label: 'Расписание',  href: '/' },
   { label: 'Репертуар',   href: '/repertoire' },
@@ -38,7 +50,10 @@ export function Sidebar({ theaterName }: { theaterName?: string }) {
         )
       })}
       <div style={{ flex: 1 }} />
-      <div style={{ padding: '16px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid #2D2580' }}>
+        <PrintLink />
+      </div>
+      <div style={{ padding: '12px 20px', fontSize: 12, color: '#9B96D4', borderTop: '1px solid #2D2580' }}>
         <div style={{ fontWeight: 500, color: '#FFFFFF' }}>{theaterName || 'Театр'}</div>
         <div style={{ marginTop: 2 }}>Администратор</div>
         <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
