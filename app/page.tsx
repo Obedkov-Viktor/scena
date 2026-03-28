@@ -201,12 +201,15 @@ export default function Home() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
+    const startDt = new Date(form.start_time)
+    let endDt = new Date(form.end_time)
+    if (endDt <= startDt) endDt.setDate(endDt.getDate() + 1) // ночные события (00:00–03:00)
     const payload = {
       title: form.title,
       type: form.type,
       venue_id: form.venue_id || null,
-      start_time: new Date(form.start_time).toISOString(),
-      end_time: new Date(form.end_time).toISOString(),
+      start_time: startDt.toISOString(),
+      end_time: endDt.toISOString(),
       description: form.description || null,
     }
     if (editingId) {
