@@ -66,6 +66,13 @@ export default function MyPage() {
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 
+  const formatEndTime = (startIso: string, endIso: string) => {
+    const start = new Date(startIso)
+    const end = new Date(endIso)
+    if (end <= start) end.setDate(end.getDate() + 1)
+    return end.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  }
+
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1) }
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1) }
 
@@ -183,7 +190,7 @@ export default function MyPage() {
                         {isSoon && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 8, background: '#FFF0C0', color: '#8B6000', fontWeight: 600 }}>СКОРО</span>}
                       </div>
                       <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>
-                        📅 {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatTime(ev.end_time)}
+                        📅 {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatEndTime(ev.start_time, ev.end_time)}
                       </div>
                       {ev.venues?.name && <div style={{ fontSize: 12, color: '#888', marginTop: 3 }}>📍 {ev.venues.name}</div>}
                       <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, padding: '2px 9px', borderRadius: 10, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', fontWeight: 500 }}>
@@ -201,7 +208,7 @@ export default function MyPage() {
                   <div key={ev.id} style={{ background: '#FAFAFA', borderRadius: 12, border: '1px solid #EBEBF0', padding: '14px 16px', marginBottom: 10, opacity: 0.7 }}>
                     <div style={{ fontWeight: 600, fontSize: 14, color: '#555' }}>{ev.title}</div>
                     <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-                      {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatTime(ev.end_time)}
+                      {formatDate(ev.start_time)} · {formatTime(ev.start_time)}–{formatEndTime(ev.start_time, ev.end_time)}
                       {ev.venues?.name && ` · ${ev.venues.name}`}
                     </div>
                   </div>
