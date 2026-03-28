@@ -388,7 +388,7 @@ export default function Home() {
     </div>
   )
 
-  const FormModal = () => showForm ? (
+  const formModal = showForm && (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 200 }}>
       <div style={{ background: '#FFFFFF', borderRadius: isMobile ? '16px 16px 0 0' : 14, padding: isMobile ? '24px 20px 32px' : 28, width: isMobile ? '100%' : 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
@@ -424,9 +424,9 @@ export default function Home() {
         </form>
       </div>
     </div>
-  ) : null
+  )
 
-  const DeleteModal = () => deleteConfirm ? (
+  const deleteModal = deleteConfirm && (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
       <div style={{ background: '#FFFFFF', borderRadius: 14, padding: 28, width: 320, textAlign: 'center' }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>🗑</div>
@@ -438,7 +438,7 @@ export default function Home() {
         </div>
       </div>
     </div>
-  ) : null
+  )
 
   if (!authChecked) return null
   if (!isLoggedIn) return <Landing />
@@ -485,8 +485,8 @@ export default function Home() {
             onClose={() => { setArtistPickerEventId(null); load() }}
           />
         )}
-        <FormModal />
-        <DeleteModal />
+        {formModal}
+        {deleteModal}
       </div>
     )
   }
