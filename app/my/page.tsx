@@ -9,9 +9,11 @@ const MONTHS_FULL = ['Январь', 'Февраль', 'Март', 'Апрель
 export default function MyPage() {
   const router = useRouter()
   const [artist, setArtist] = useState<any>(null)
+  const [theaterName, setTheaterName] = useState('')
   const [events, setEvents] = useState<any[]>([])
   const [allUpcoming, setAllUpcoming] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [month, setMonth] = useState(new Date().getMonth())
   const [year, setYear] = useState(new Date().getFullYear())
 
@@ -20,17 +22,17 @@ export default function MyPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: artistData } = await supabase
-        .from('artists')
-        .select('*')
-        .eq('email', user.email)
-        .maybeSingle()
+      const [{ data: artistData }, { data: ut }] = await Promise.all([
+        supabase.from('artists').select('*').eq('email', user.email).maybeSingle(),
+        supabase.from('user_theaters').select('theaters(name)').eq('user_id', user.id).maybeSingle(),
+      ])
 
-      if (!artistData) { router.push('/'); return }
+      setTheaterName((ut as any)?.theaters?.name || '')
+
+      if (!artistData) { setNotFound(true); setLoading(false); return }
       setArtist(artistData)
       setLoading(false)
 
-      // Load all upcoming events for notifications
       const { data: upcoming } = await supabase
         .from('events')
         .select('*, venues(name), event_artists!inner(artist_id)')
@@ -79,6 +81,20 @@ export default function MyPage() {
     </div>
   )
 
+  if (notFound) return (
+    <div style={{ minHeight: '100vh', background: '#F7F6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}>
+      <div style={{ textAlign: 'center', padding: 40 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎭</div>
+        <div style={{ fontSize: 18, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>Профиль артиста не найден</div>
+        <div style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>Ваш email не совпадает ни с одним артистом.<br />Обратитесь к администратору театра.</div>
+        <button onClick={async () => { await supabase.auth.signOut(); router.push('/login') }}
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#534AB7', color: '#FFF', fontSize: 14, cursor: 'pointer' }}>
+          Выйти
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <div style={{ minHeight: '100vh', background: '#F7F6FF', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
@@ -116,12 +132,14 @@ export default function MyPage() {
 
         {/* Artist card */}
         <div style={{ background: '#FFFFFF', borderRadius: 14, border: '1px solid #EBEBF0', padding: '20px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#FFFFFF', flexShrink: 0 }}>
-            {artist?.full_name?.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#FFFFFF', flexShrink: 0, overflow: 'hidden' }}>
+            {artist?.avatar_url
+              ? <img src={artist.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : artist?.full_name?.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#1a1a2e' }}>{artist?.full_name}</div>
-            <div style={{ fontSize: 13, color: '#888', marginTop: 3 }}>{artist?.role || 'Артист'} · Театр мимики и жеста (ТМЖ)</div>
+            <div style={{ fontSize: 13, color: '#888', marginTop: 3 }}>{artist?.role || 'Артист'}{theaterName ? ` · ${theaterName}` : ''}</div>
           </div>
         </div>
 
