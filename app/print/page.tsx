@@ -1,12 +1,12 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSearchParams } from 'next/navigation'
 
 const MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
-export default function PrintPage() {
+function PrintContent() {
   const searchParams = useSearchParams()
   const today = new Date()
   const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : today.getFullYear()
@@ -167,5 +167,13 @@ export default function PrintPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function PrintPage() {
+  return (
+    <Suspense>
+      <PrintContent />
+    </Suspense>
   )
 }
