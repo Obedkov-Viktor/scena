@@ -234,6 +234,7 @@ export default function Home() {
     const weekDays = getWeekDays(weekStart)
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
+    weekEnd.setHours(23, 59, 59, 999)
     const weekEvents = events.filter(e => {
       const d = new Date(e.start_time)
       return d >= weekStart && d <= weekEnd
