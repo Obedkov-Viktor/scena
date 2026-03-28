@@ -39,11 +39,11 @@ export default function ArtistPicker({ eventId, onClose }: { eventId: string, on
   const toggle = async (artistId: string) => {
     setLoading(true)
     const isAssigned = assigned.includes(artistId)
-    await fetch('/api/event-artists', {
-      method: isAssigned ? 'DELETE' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: eventId, artist_id: artistId })
-    })
+    if (isAssigned) {
+      await supabase.from('event_artists').delete().eq('event_id', eventId).eq('artist_id', artistId)
+    } else {
+      await supabase.from('event_artists').insert([{ event_id: eventId, artist_id: artistId }])
+    }
     setAssigned(prev => isAssigned ? prev.filter(id => id !== artistId) : [...prev, artistId])
     setLoading(false)
   }
