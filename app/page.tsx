@@ -595,8 +595,8 @@ export default function Home() {
           onClose={() => { setArtistPickerEventId(null); load() }}
         />
       )}
-      <FormModal />
-      <DeleteModal />
+      {formModal}
+      {deleteModal}
     </div>
   )
 }
