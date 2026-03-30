@@ -154,12 +154,15 @@ export default function Home() {
   const load = useCallback(async () => {
     const from = new Date(year, month, 1).toISOString()
     const to = new Date(year, month + 1, 0, 23, 59).toISOString()
-    const { data } = await supabase.from('events').select('*, venues(name), event_artists(artist_id, artists(full_name))').gte('start_time', from).lte('start_time', to).order('start_time')
-    setEvents(data || [])
+    const [{ data: evs }, { data: vens }] = await Promise.all([
+      supabase.from('events').select('*, venues(name), event_artists(artist_id, artists(full_name))').gte('start_time', from).lte('start_time', to).order('start_time'),
+      supabase.from('venues').select('*'),
+    ])
+    setEvents(evs || [])
+    setVenues(vens || [])
   }, [year, month])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { supabase.from('venues').select('*').then(({ data }) => setVenues(data || [])) }, [])
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchResults(null); return }
