@@ -311,8 +311,8 @@ export default function Artists() {
         </div>
       </div>
 
-      <FormModal />
-      <DeleteModal />
+      {formModal}
+      {deleteModal}
     </div>
   )
 }
