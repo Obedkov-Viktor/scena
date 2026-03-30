@@ -42,11 +42,11 @@ function Landing() {
   return (
     <div style={{ minHeight: '100vh', background: '#1E1756', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', borderBottom: '1px solid #2D2580' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: '#FFFFFF', letterSpacing: 2 }}>СЦЕНА</div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <a href="/login" style={{ padding: '8px 20px', borderRadius: 8, border: '1px solid #534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Войти</a>
-          <a href="/register" style={{ padding: '8px 20px', borderRadius: 8, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Зарегистрировать театр</a>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #2D2580', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', letterSpacing: 2 }}>СЦЕНА</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <a href="/login" style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>Войти</a>
+          <a href="/register" style={{ padding: '8px 14px', borderRadius: 8, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>Зарегистрировать театр</a>
         </div>
       </div>
 
