@@ -5,7 +5,7 @@ import { useTheater } from '@/lib/useTheater'
 import { Sidebar, MobileNav } from '@/app/components/Sidebar'
 import Link from 'next/link'
 
-const emptyForm = { full_name: '', role: '', phone: '', email: '', avatar_url: '' }
+const emptyForm = { full_name: '', role: '', phone: '', email: '', avatar_url: '', birth_date: '', bio: '' }
 
 export default function Artists() {
   const { theaterId } = useTheater()
@@ -55,7 +55,7 @@ export default function Artists() {
   const openNew = () => { setEditingId(null); setForm(emptyForm); setShowForm(true) }
   const openEdit = (a: any) => {
     setEditingId(a.id)
-    setForm({ full_name: a.full_name, role: a.role || '', phone: a.phone || '', email: a.email || '', avatar_url: a.avatar_url || '' })
+    setForm({ full_name: a.full_name, role: a.role || '', phone: a.phone || '', email: a.email || '', avatar_url: a.avatar_url || '', birth_date: a.birth_date || '', bio: a.bio || '' })
     setShowForm(true)
   }
 
@@ -96,6 +96,15 @@ export default function Artists() {
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const colors = ['#534AB7', '#1D9E75', '#D85A30', '#BA7517', '#185FA5']
   const colorFor = (i: number) => colors[i % colors.length]
+
+  const birthdaySoon = artists.filter(a => {
+    if (!a.birth_date) return false
+    const today = new Date()
+    const bd = new Date(a.birth_date)
+    const thisYear = new Date(today.getFullYear(), bd.getMonth(), bd.getDate())
+    const diff = (thisYear.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    return diff >= 0 && diff <= 2
+  })
 
   const ArtistList = () => (
     <div style={{ background: '#FFFFFF', borderRadius: isMobile ? 0 : 12, border: isMobile ? 'none' : '1px solid #EBEBF0', overflow: 'hidden' }}>
@@ -151,7 +160,14 @@ export default function Artists() {
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>{selectedArtist.role || 'Роль не указана'}</div>
         {selectedArtist.email && <div style={{ fontSize: 13, color: '#534AB7', marginTop: 6 }}>{selectedArtist.email}</div>}
         {selectedArtist.phone && <div style={{ fontSize: 13, color: '#888', marginTop: 3 }}>{selectedArtist.phone}</div>}
+        {selectedArtist.birth_date && <div style={{ fontSize: 13, color: '#888', marginTop: 3 }}>🎂 {new Date(selectedArtist.birth_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</div>}
       </div>
+      {selectedArtist.bio && (
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0F5' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Характеристика</div>
+          <div style={{ fontSize: 13, color: '#444', lineHeight: 1.5 }}>{selectedArtist.bio}</div>
+        </div>
+      )}
       <div style={{ padding: '14px 16px' }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ближайшие события</div>
         {selEvents.length === 0 ? (
@@ -189,6 +205,14 @@ export default function Artists() {
               <input required={f.key === 'full_name'} value={(form as any)[f.key]} onChange={e => setForm({...form, [f.key]: e.target.value})} placeholder={f.placeholder} style={inp} />
             </div>
           ))}
+          <div style={{ marginBottom: 16 }}>
+            <label style={lbl}>Дата рождения</label>
+            <input type="date" value={form.birth_date} onChange={e => setForm({...form, birth_date: e.target.value})} style={{...inp, color: form.birth_date ? '#1a1a2e' : '#999'}} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={lbl}>Характеристика / биография</label>
+            <textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="Краткое описание артиста, достижения, особенности..." style={{...inp, height: 80, resize: 'vertical'}} />
+          </div>
           <div style={{ marginBottom: 20 }}>
             <label style={lbl}>Фото</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -271,6 +295,16 @@ export default function Artists() {
           <button onClick={openNew} style={{ background: '#534AB7', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>+ Артист</button>
         </div>
         <div style={{ flex: 1, padding: 24, overflow: 'auto' }}>
+          {birthdaySoon.length > 0 && (
+            <div style={{ background: '#FFF8E6', border: '1px solid #F0C040', borderRadius: 12, padding: '12px 18px', marginBottom: 20, maxWidth: 1100 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#8B6000', marginBottom: 6 }}>🎂 День рождения (в течение 2 дней)</div>
+              {birthdaySoon.map(a => (
+                <div key={a.id} style={{ fontSize: 13, color: '#5A4000' }}>
+                  {a.full_name} — {new Date(a.birth_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                </div>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, maxWidth: 1100 }}>
             <ArtistList />
             <ArtistDetail />
