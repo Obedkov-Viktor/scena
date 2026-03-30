@@ -31,6 +31,14 @@ function toLocalInput(iso: string) {
 }
 
 function Landing() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   const features = [
     { icon: '📅', title: 'Расписание', desc: 'Календарь спектаклей и репетиций по месяцам и неделям' },
     { icon: '👥', title: 'Артисты', desc: 'Профили, роли, занятость и назначение на события' },
@@ -40,57 +48,57 @@ function Landing() {
     { icon: '📊', title: 'Отчёты', desc: 'Статистика занятости и активности театра' },
   ]
   return (
-    <div style={{ minHeight: '100vh', background: '#1E1756', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#1E1756', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #2D2580', flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', letterSpacing: 2 }}>СЦЕНА</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #2D2580', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#FFFFFF', letterSpacing: 2 }}>СЦЕНА</div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <a href="/login" style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>Войти</a>
-          <a href="/register" style={{ padding: '8px 14px', borderRadius: 8, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>Зарегистрировать театр</a>
+          <a href="/login" style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Войти</a>
+          <a href="/register" style={{ padding: '7px 12px', borderRadius: 8, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>Регистрация</a>
         </div>
       </div>
 
       {/* Hero */}
-      <div style={{ textAlign: 'center', padding: '80px 40px 60px' }}>
-        <div style={{ fontSize: 13, color: '#7F77DD', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>Система управления театром</div>
-        <h1 style={{ fontSize: 48, fontWeight: 800, color: '#FFFFFF', margin: '0 0 20px', lineHeight: 1.15 }}>
+      <div style={{ textAlign: 'center', padding: '48px 20px 40px' }}>
+        <div style={{ fontSize: 12, color: '#7F77DD', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 14 }}>Система управления театром</div>
+        <h1 style={{ fontSize: isMobile ? 26 : 30, fontWeight: 800, color: '#FFFFFF', margin: '0 0 16px', lineHeight: 1.2 }}>
           Всё расписание театра —<br />в одном месте
         </h1>
-        <p style={{ fontSize: 18, color: '#9B96D4', maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 15, color: '#9B96D4', maxWidth: 400, margin: '0 auto 32px', lineHeight: 1.6 }}>
           Управляйте спектаклями, артистами и гастролями. Без Excel, без путаницы.
         </p>
-        <a href="/register" style={{ display: 'inline-block', padding: '14px 36px', borderRadius: 12, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 16, fontWeight: 700, boxShadow: '0 4px 24px rgba(83,74,183,0.4)' }}>
+        <a href="/register" style={{ display: 'inline-block', padding: '13px 30px', borderRadius: 12, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 15, fontWeight: 700, boxShadow: '0 4px 24px rgba(83,74,183,0.4)' }}>
           Начать бесплатно →
         </a>
-        <div style={{ marginTop: 14, fontSize: 13, color: '#6B67A8' }}>Бесплатно · Без кредитной карты · Готово за 2 минуты</div>
+        <div style={{ marginTop: 12, fontSize: 12, color: '#6B67A8' }}>Бесплатно · Без кредитной карты · Готово за 2 минуты</div>
       </div>
 
       {/* Features */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 40px 80px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div style={{ padding: '0 16px 48px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, maxWidth: 900, margin: '0 auto' }}>
           {features.map(f => (
-            <div key={f.title} style={{ background: '#2D2580', borderRadius: 12, padding: '24px 20px' }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>{f.icon}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', marginBottom: 6 }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: '#9B96D4', lineHeight: 1.5 }}>{f.desc}</div>
+            <div key={f.title} style={{ background: '#2D2580', borderRadius: 12, padding: '18px 16px' }}>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>{f.icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#FFFFFF', marginBottom: 4 }}>{f.title}</div>
+              <div style={{ fontSize: 12, color: '#9B96D4', lineHeight: 1.5 }}>{f.desc}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* CTA */}
-      <div style={{ textAlign: 'center', padding: '0 40px 80px' }}>
-        <div style={{ background: '#2D2580', borderRadius: 16, padding: '48px 40px', maxWidth: 560, margin: '0 auto' }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#FFFFFF', marginBottom: 12 }}>Готовы попробовать?</div>
-          <div style={{ fontSize: 14, color: '#9B96D4', marginBottom: 28 }}>Зарегистрируйте театр и начните пользоваться прямо сейчас</div>
-          <a href="/register" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: 10, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 15, fontWeight: 600 }}>
+      <div style={{ textAlign: 'center', padding: '0 16px 48px' }}>
+        <div style={{ background: '#2D2580', borderRadius: 16, padding: '32px 24px', maxWidth: 560, margin: '0 auto' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', marginBottom: 10 }}>Готовы попробовать?</div>
+          <div style={{ fontSize: 13, color: '#9B96D4', marginBottom: 24 }}>Зарегистрируйте театр и начните пользоваться прямо сейчас</div>
+          <a href="/register" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 10, background: '#534AB7', color: '#FFFFFF', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
             Зарегистрировать театр
           </a>
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid #2D2580', padding: '20px 40px', textAlign: 'center', fontSize: 12, color: '#6B67A8' }}>
+      <div style={{ borderTop: '1px solid #2D2580', padding: '16px', textAlign: 'center', fontSize: 12, color: '#6B67A8' }}>
         СЦЕНА — система управления театром · 2026
       </div>
     </div>
