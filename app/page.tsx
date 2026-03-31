@@ -149,15 +149,16 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
+      if (!session) { setIsLoggedIn(false); setAuthChecked(true); return }
+      try {
         const { data: ut } = await supabase
           .from('user_theaters')
           .select('role')
           .eq('user_id', session.user.id)
           .maybeSingle()
         if (ut?.role === 'artist') { router.replace('/my'); return }
-      }
-      setIsLoggedIn(!!session)
+      } catch (_) {}
+      setIsLoggedIn(true)
       setAuthChecked(true)
     })
   }, [])
