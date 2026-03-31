@@ -19,13 +19,12 @@ export default function Login() {
       setError('Неверный email или пароль')
       setLoading(false)
     } else {
-      // Check if this email belongs to an artist (case-insensitive)
-      const { data: artist } = await supabase
-        .from('artists')
-        .select('id')
-        .ilike('email', data.user?.email ?? '')
+      const { data: ut } = await supabase
+        .from('user_theaters')
+        .select('role')
+        .eq('user_id', data.user?.id)
         .maybeSingle()
-      router.push(artist ? '/my' : '/')
+      router.push(ut?.role === 'artist' ? '/my' : '/')
       router.refresh()
     }
   }
