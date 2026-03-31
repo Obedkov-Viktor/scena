@@ -5,6 +5,7 @@ import { useTheater } from '@/lib/useTheater'
 import { Sidebar, MobileNav } from '@/app/components/Sidebar'
 import Link from 'next/link'
 import ArtistPicker from './components/ArtistPicker'
+import { useRouter } from 'next/navigation'
 
 const MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -107,6 +108,7 @@ function Landing() {
 
 export default function Home() {
   const today = new Date()
+  const router = useRouter()
   const { theaterId } = useTheater()
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -146,7 +148,15 @@ export default function Home() {
 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const { data: artist } = await supabase
+          .from('artists')
+          .select('id')
+          .ilike('email', session.user.email ?? '')
+          .maybeSingle()
+        if (artist) { router.replace('/my'); return }
+      }
       setIsLoggedIn(!!session)
       setAuthChecked(true)
     })
