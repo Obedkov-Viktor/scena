@@ -325,7 +325,7 @@ export default function Home() {
               {day && <>
                 <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: tod ? 700 : 400, background: tod ? '#534AB7' : 'transparent', color: tod ? '#FFFFFF' : sel ? '#534AB7' : '#1a1a2e', marginBottom: 2 }}>{day}</div>
                 {!isMobile && dayEvents.slice(0, 2).map(ev => (
-                  <div key={ev.id} style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, marginBottom: 1, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
+                  <div key={ev.id} title={ev.title} style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, marginBottom: 1, background: ev.type === 'rehearsal' ? '#E1F5EE' : '#EEEDFE', color: ev.type === 'rehearsal' ? '#085041' : '#3C3489', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'default' }}>{ev.title}</div>
                 ))}
                 {isMobile && dayEvents.length > 0 && (
                   <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
