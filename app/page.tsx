@@ -150,12 +150,14 @@ export default function Home() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        const { data: artist } = await supabase
-          .from('artists')
-          .select('id')
-          .ilike('email', session.user.email ?? '')
-          .maybeSingle()
-        if (artist) { router.replace('/my'); return }
+        try {
+          const { data: artist } = await supabase
+            .from('artists')
+            .select('id')
+            .ilike('email', session.user.email ?? '')
+            .maybeSingle()
+          if (artist) { router.replace('/my'); return }
+        } catch (_) {}
       }
       setIsLoggedIn(!!session)
       setAuthChecked(true)
