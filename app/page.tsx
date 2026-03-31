@@ -181,7 +181,7 @@ export default function Home() {
     setVenues(vens || [])
   }, [year, month])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { if (isLoggedIn) load() }, [load, isLoggedIn])
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchResults(null); return }
