@@ -321,7 +321,7 @@ export default function Home() {
           const tod = day ? isToday(day) : false
           return (
             <div key={i} onClick={() => { if (day) { setSelected(day); if (isMobile) setMobileTab('events') } }}
-              style={{ minHeight: isMobile ? 52 : 68, padding: '5px 6px', borderRight: '1px solid #F0F0F5', borderBottom: '1px solid #F0F0F5', cursor: day ? 'pointer' : 'default', background: sel ? '#EEEDFE' : '#FFFFFF' }}>
+              style={{ minHeight: isMobile ? 52 : 68, padding: '5px 6px', borderRight: '1px solid #F0F0F5', borderBottom: '1px solid #F0F0F5', cursor: day ? 'pointer' : 'default', background: sel ? '#EEEDFE' : '#FFFFFF', overflow: 'hidden', minWidth: 0 }}>
               {day && <>
                 <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: tod ? 700 : 400, background: tod ? '#534AB7' : 'transparent', color: tod ? '#FFFFFF' : sel ? '#534AB7' : '#1a1a2e', marginBottom: 2 }}>{day}</div>
                 {!isMobile && dayEvents.slice(0, 2).map(ev => (
